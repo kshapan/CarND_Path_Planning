@@ -154,4 +154,76 @@ vector<double> getXY(double s, double d, const vector<double> &maps_s,
   return {x,y};
 }
 
+double getVehicleRelativeDistance(const vector<vector<double>> &sensor_fusion, const int lane, const double car_s, const int prev_size)
+{
+  double adjacent_vehicle_distance{100.0};
+  for (int i{0}; i < sensor_fusion.size(); ++i)
+  {
+    auto d = sensor_fusion[i][6];
+    if((d < (2+4*lane+2)) and (d >(2+4*lane-2)))
+    {
+      double vx = sensor_fusion[i][3];
+      double vy = sensor_fusion[i][4];
+      double check_speed = sqrt(vx*vx + vy*vy)/2.24;
+      double check_car_s = sensor_fusion[i][5];
+
+      check_car_s += ((double)prev_size*0.02*(check_speed)); 
+
+      if((check_car_s > car_s) && ((check_car_s - car_s) < adjacent_vehicle_distance))
+      {
+        adjacent_vehicle_distance = (check_car_s - car_s);
+        std::cerr << " for vehicle : " << i << "adjacent_vehicle_distance: " << adjacent_vehicle_distance << std::endl;
+      }
+    }  
+  }
+  return adjacent_vehicle_distance;
+}
+
+int getLaneForLaneChange(const vector<vector<double>> &sensor_fusion, const int lane, const double car_s, const int prev_size)
+{
+  int lane_to_switch{lane};
+
+  const int lane_left{lane - 1};
+  const int lane_right{lane + 1};
+
+  bool lane_left_valid{false};
+  bool lane_right_valid{false};
+  double vehicle_relative_distance_in_left{0.};
+  double vehicle_relative_distance_in_right{0.};
+  if(lane_left >= 0)
+  {
+    vehicle_relative_distance_in_left = getVehicleRelativeDistance(sensor_fusion, lane_left, car_s, prev_size); 
+    if(vehicle_relative_distance_in_left > 40.0)
+    {
+      lane_left_valid = true;
+    } 
+  }
+  if(lane_right <= 2)
+  {
+    vehicle_relative_distance_in_right = getVehicleRelativeDistance(sensor_fusion, lane_right, car_s, prev_size);
+    if(vehicle_relative_distance_in_right > 40.0)
+    {
+      lane_right_valid = true;
+    }
+  }
+
+  if (lane_left_valid and lane_right_valid)
+  {
+    lane_to_switch = (vehicle_relative_distance_in_left >= vehicle_relative_distance_in_right) ? lane_left : lane_right;
+  }
+  else if (lane_left_valid)
+  {
+    lane_to_switch = lane_left;
+  }
+  else if (lane_right_valid)
+  {
+    lane_to_switch = lane_right;
+  }
+  else
+  {
+  }
+
+  return lane_to_switch;
+}
+
 #endif  // HELPERS_H
