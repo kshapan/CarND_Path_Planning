@@ -167,12 +167,11 @@ double getVehicleRelativeDistance(const vector<vector<double>> &sensor_fusion, c
       double check_speed = sqrt(vx*vx + vy*vy)/2.24;
       double check_car_s = sensor_fusion[i][5];
 
-      check_car_s += ((double)prev_size*0.02*(check_speed)); 
+      check_car_s += ((double)prev_size*0.02*(check_speed));
 
-      if((check_car_s > car_s) && ((check_car_s - car_s) < adjacent_vehicle_distance))
+      if((check_car_s > car_s-10) && ((check_car_s - car_s) < adjacent_vehicle_distance))
       {
         adjacent_vehicle_distance = (check_car_s - car_s);
-        std::cerr << " for vehicle : " << i << "adjacent_vehicle_distance: " << adjacent_vehicle_distance << std::endl;
       }
     }  
   }
@@ -222,7 +221,6 @@ int getLaneForLaneChange(const vector<vector<double>> &sensor_fusion, const int 
   else
   {
   }
-
   return lane_to_switch;
 }
 

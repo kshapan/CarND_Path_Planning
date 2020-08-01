@@ -111,6 +111,11 @@ int main() {
            *   sequentially every .02 seconds
            */
           const auto prev_size{previous_path_x.size()};
+          auto real_car_s = car_s;
+          if(prev_size > 0)
+          {
+            car_s = end_path_s;
+          }
 
           bool too_close = false;
           double front_vehicle_speed{ref_vel};
@@ -131,9 +136,9 @@ int main() {
               {
                 too_close = true;
                 front_vehicle_speed = check_speed;
-                lane = getLaneForLaneChange(sensor_fusion, lane, car_s, prev_size);
-                std::cerr << " for vehicle : " << i << "(check_car_s - car_s): " << (check_car_s - car_s) << "lane : " << lane << std::endl;
-                std::cout << "front_vehicle_speed =" << front_vehicle_speed << std::endl; 
+                lane = getLaneForLaneChange(sensor_fusion, lane, real_car_s, prev_size);
+
+                std::cerr << "####### for vehicle : " << i << "(check_car_s - car_s): " << (check_car_s - car_s) << "lane : " << lane << std::endl;
               }
             }  
           }
@@ -141,11 +146,9 @@ int main() {
           if(too_close)
           {
             ref_vel -= 0.224;
-            std::cout << "** front_vehicle_speed = " << front_vehicle_speed << std::endl;
             if(ref_vel < front_vehicle_speed)
             {
               ref_vel = front_vehicle_speed;
-              std::cout << "ref_vel =" << ref_vel << std::endl;
             }   
           }
           else if(ref_vel < (49.0 / 2.24))
